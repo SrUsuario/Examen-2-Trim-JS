@@ -9,9 +9,9 @@
 </head>
 
 <body onload="tiempo()">
-    <input type="radio" name="galicia" id="galicia" onclick="leerXMLGalicia()">
+    <input type="radio" name="comunidad" id="galicia" onclick="leerXML('galicia')">
     <label for="galicia">Galicia</label>
-    <input type="radio" name="aragon" id="aragon" onclick="leerXMLAragon()">
+    <input type="radio" name="comunidad" id="aragon" onclick="leerXML('aragon')">
     <label for="aragon">Aragon</label><br><br>
     <label for="provincias">Provincias:</label>
     <select id="provincias" name="provincias">
@@ -25,74 +25,76 @@
         var xml = new XMLHttpRequest();
         var out = "";
 
-        // Esta función lee el archivo galicia.xml
-        function leerXMLGalicia() {
+        // Esta función lee el archivo xml de la comunidad pasada como parametro
+        function leerXML(comunidad) {
             xml.onreadystatechange = function () {
                 if (xml.readyState == 4 && xml.status == 200) {
                     formatoXML(xml.responseXML);
                 }
             }
-            xml.open("GET", "galicia.xml", true);
-            xml.send();
-        }
-
-        // Esta función lee el archivo aragon.xml
-        function leerXMLAragon() {
-            xml.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    formatoXML(this.responseXML);
-                }
-            }
-            xml.open("GET", "aragon.xml", true);
+            xml.open("GET", comunidad + ".xml", true);
             xml.send();
         }
 
         // Esta función muestra las provincias recogidas del xml en el select
         function formatoXML(xml) {
-            out = "";
-            var array = xml.firstChild.getElementsByTagName("provincia");
+            if (xml != undefined) {
+                out = "";
+                var array = xml.firstChild.getElementsByTagName("provincia");
 
-            for (let i = 0; i < array.length; i++) {
-                out += "<option value=" + i + " onclick='leerJSON(" + i + ")''> " + array[i].children[0].childNodes[0].nodeValue + "</option>";
+                for (let i = 0; i < array.length; i++) {
+                    out += "<option value=" + i + " onclick='leerJSON(" + i + ")'> " + array[i].children[0].childNodes[0].nodeValue + "</option>";
+                }
+                document.getElementById("provincias").innerHTML = out;
             }
-            document.getElementById("provincias").innerHTML = out;
         }
 
-        // Esta función crea un worker que lee el JSON
+        // Está función carga el JSON y se lo pasa al hilo principal
         function leerJSON(indice) {
-            var worker = new Worker("json.js");
-            worker.onmessage = (e) => {
-                formatoJSON(e["data"], indice);
-                worker.terminate();
-            };
+            xml.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    formatoJSON(JSON.parse(this.responseText), indice);
+                }
+            }
+            xml.open("GET", "provincias.json", true);
+            xml.send();
         }
 
         // Esta función da formato al array de objetos del Worker
         function formatoJSON(json, indice) {
-            var almacen = [];
+            var provincias = [];
             out = "";
 
             for (let i = 0; i < json.length; i++) {
                 provincia = {};
 
                 provincia.nombre = json[i]["nombre"];
-                provincia.provincia = json[i]["provincia"];
+                provincia.comunidad = json[i]["comunidad"];
                 provincia.habitantes = json[i]["habitantes"];
 
                 if (i === indice) {
                     out += provincia.habitantes;
                 }
-                almacen[i] = provincia;
+                provincias[i] = provincia;
             }
 
-            document.getElementById("habitantes").innerText = out;
+            document.getElementById("habitantes").value = out;
         }
 
         // Está función obtiene la hora actual y la muestra por pantalla
         function tiempo() {
             var worker = new Worker("tiempo.js");
             worker.onmessage = (e) => {
-                document.getElementById("tiempo").innerText = e["data"].getHours() + ":" + e["data"].getMinutes() + ":" + e["data"].getSeconds();
+
+                let horas = e["data"].getHours();
+                let minutos = e["data"].getMinutes();
+                let segundos = e["data"].getSeconds();
+
+                (horas < 10) ? horas = "0" + horas : horas = horas;
+                (minutos < 10) ? minutos = "0" + minutos : minutos = minutos;
+                (segundos < 10) ? segundos = "0" + segundos : segundos = segundos;
+
+                document.getElementById("tiempo").innerText = horas + ":" + minutos + ":" + segundos;
             };
         }
     </script>
