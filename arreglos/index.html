@@ -14,7 +14,7 @@
     <input type="radio" name="comunidad" id="aragon" onclick="leerXML('aragon')">
     <label for="aragon">Aragon</label><br><br>
     <label for="provincias">Provincias:</label>
-    <select id="provincias" name="provincias">
+    <select id="provincias" name="provincias" onclick="leerJSON(this.value)">
         <option value="">Selecione una opción de los radio buttons</option>
     </select><br><br>
     <input type="checkbox" name="ordenar" id="ordenar">
@@ -28,8 +28,8 @@
         // Esta función lee el archivo xml de la comunidad pasada como parametro
         function leerXML(comunidad) {
             xml.onreadystatechange = function () {
-                if (xml.readyState == 4 && xml.status == 200) {
-                    formatoXML(xml.responseXML);
+                if (this.readyState == 4 && this.status == 200) {
+                    formatoXML(this.responseXML);
                 }
             }
             xml.open("GET", comunidad + ".xml", true);
@@ -43,7 +43,7 @@
                 var array = xml.firstChild.getElementsByTagName("provincia");
 
                 for (let i = 0; i < array.length; i++) {
-                    out += "<option value=" + i + " onclick='leerJSON(" + i + ")'> " + array[i].children[0].childNodes[0].nodeValue + "</option>";
+                    out += "<option value=" + i + ">" + array[i].children[0].childNodes[0].nodeValue + "</option>";
                 }
                 document.getElementById("provincias").innerHTML = out;
             }
@@ -72,13 +72,13 @@
                 provincia.comunidad = json[i]["comunidad"];
                 provincia.habitantes = json[i]["habitantes"];
 
-                if (i === indice) {
+                if (i == indice) {
                     out += provincia.habitantes;
                 }
                 provincias[i] = provincia;
             }
 
-            document.getElementById("habitantes").value = out;
+            document.getElementById("habitantes").innerText = out;
         }
 
         // Está función obtiene la hora actual y la muestra por pantalla
