@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Raul - Ex 2 Eval DWCC</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+
+<body onload="tiempo()">
+    <input type="radio" name="galicia" id="galicia" onclick="leerXMLGalicia()">
+    <label for="galicia">Galicia</label>
+    <input type="radio" name="aragon" id="aragon" onclick="leerXMLAragon()">
+    <label for="aragon">Aragon</label><br><br>
+    <label for="provincias">Provincias:</label>
+    <select id="provincias" name="provincias">
+        <option value="">Selecione una opción de los radio buttons</option>
+    </select><br><br>
+    <input type="checkbox" name="ordenar" id="ordenar">
+    <label for="ordenar">Orden ascendente</label><br><br>
+    <textarea id="habitantes" name="habitantes"></textarea><br><br>
+    <p id="tiempo"></p>
+    <script>
+        var xml = new XMLHttpRequest();
+        var out = "";
+
+        // Esta función lee el archivo galicia.xml
+        function leerXMLGalicia() {
+            xml.onreadystatechange = function () {
+                if (xml.readyState == 4 && xml.status == 200) {
+                    formatoXML(xml.responseXML);
+                }
+            }
+            xml.open("GET", "galicia.xml", true);
+            xml.send();
+        }
+
+        // Esta función lee el archivo aragon.xml
+        function leerXMLAragon() {
+            xml.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    formatoXML(this.responseXML);
+                }
+            }
+            xml.open("GET", "aragon.xml", true);
+            xml.send();
+        }
+
+        // Esta función muestra las provincias recogidas del xml en el select
+        function formatoXML(xml) {
+            out = "";
+            var array = xml.firstChild.getElementsByTagName("provincia");
+
+            for (let i = 0; i < array.length; i++) {
+                out += "<option value=" + i + " onclick='leerJSON(" + i + ")''> " + array[i].children[0].childNodes[0].nodeValue + "</option>";
+            }
+            document.getElementById("provincias").innerHTML = out;
+        }
+
+        // Esta función crea un worker que lee el JSON
+        function leerJSON(indice) {
+            var worker = new Worker("json.js");
+            worker.onmessage = (e) => {
+                formatoJSON(e["data"], indice);
+                worker.terminate();
+            };
+        }
+
+        // Esta función da formato al array de objetos del Worker
+        function formatoJSON(json, indice) {
+            var almacen = [];
+            out = "";
+
+            for (let i = 0; i < json.length; i++) {
+                provincia = {};
+
+                provincia.nombre = json[i]["nombre"];
+                provincia.provincia = json[i]["provincia"];
+                provincia.habitantes = json[i]["habitantes"];
+
+                if (i === indice) {
+                    out += provincia.habitantes;
+                }
+                almacen[i] = provincia;
+            }
+
+            document.getElementById("habitantes").innerText = out;
+        }
+
+        // Está función obtiene la hora actual y la muestra por pantalla
+        function tiempo() {
+            var worker = new Worker("tiempo.js");
+            worker.onmessage = (e) => {
+                document.getElementById("tiempo").innerText = e["data"].getHours() + ":" + e["data"].getMinutes() + ":" + e["data"].getSeconds();
+            };
+        }
+    </script>
+</body>
+
+</html>
