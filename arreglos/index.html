@@ -14,16 +14,18 @@
     <input type="radio" name="comunidad" id="aragon" onclick="leerXML('aragon')">
     <label for="aragon">Aragon</label><br><br>
     <label for="provincias">Provincias:</label>
-    <select id="provincias" name="provincias" onclick="leerJSON(this.value)">
+    <select id="provincias" name="provincias" onchange="leerJSON(this.value)">
         <option value="">Selecione una opción de los radio buttons</option>
     </select><br><br>
-    <input type="checkbox" name="ordenar" id="ordenar">
+    <input type="checkbox" name="ordenar" id="ordenar" onclick="ordenar()">
     <label for="ordenar">Orden ascendente</label><br><br>
     <textarea id="habitantes" name="habitantes"></textarea><br><br>
     <p id="tiempo"></p>
     <script>
         var xml = new XMLHttpRequest();
         var out = "";
+        var arrayOrdenado = [];
+        var comunidadSeleccionada = "";
 
         // Esta función lee el archivo xml de la comunidad pasada como parametro
         function leerXML(comunidad) {
@@ -32,6 +34,7 @@
                     formatoXML(this.responseXML);
                 }
             }
+            comunidadSeleccionada = comunidad;
             xml.open("GET", comunidad + ".xml", true);
             xml.send();
         }
@@ -40,12 +43,28 @@
         function formatoXML(xml) {
             if (xml != undefined) {
                 out = "";
-                var array = xml.firstChild.getElementsByTagName("provincia");
+                var arrayOriginal = xml.firstChild.getElementsByTagName("provincia");
 
-                for (let i = 0; i < array.length; i++) {
-                    out += "<option value=" + i + ">" + array[i].children[0].childNodes[0].nodeValue + "</option>";
+                for (let i = 0; i < arrayOriginal.length; i++) {
+                    arrayOrdenado[i] = arrayOriginal[i].children[0].childNodes[0].nodeValue;
+                    out += "<option value='" + i + "'>" + arrayOrdenado[i] + "</option>";
                 }
+
                 document.getElementById("provincias").innerHTML = out;
+            }
+        }
+
+        // Está función ordena el array si está marcado el checkbox Orden ascendente
+        function ordenar() {
+            for (let i = 0; i < document.getElementsByName("comunidad").length; i++) {
+                if (document.getElementsByName("comunidad")[i].checked) {
+                    arrayOrdenado.sort();
+                    out = "";
+                    for (let i = 0; i < arrayOrdenado.length; i++) {
+                        out += "<option value='" + i + "'>" + arrayOrdenado[i] + "</option>";
+                    }
+                    document.getElementById("provincias").innerHTML = out;
+                }
             }
         }
 
@@ -68,11 +87,12 @@
             for (let i = 0; i < json.length; i++) {
                 provincia = {};
 
+                provincia.numero = json[i]["numero"];
                 provincia.nombre = json[i]["nombre"];
                 provincia.comunidad = json[i]["comunidad"];
                 provincia.habitantes = json[i]["habitantes"];
 
-                if (i == indice) {
+                if (--provincia.numero == indice && provincia.comunidad == comunidadSeleccionada) {
                     out += provincia.habitantes;
                 }
                 provincias[i] = provincia;
@@ -85,7 +105,6 @@
         function tiempo() {
             var worker = new Worker("tiempo.js");
             worker.onmessage = (e) => {
-
                 let horas = e["data"].getHours();
                 let minutos = e["data"].getMinutes();
                 let segundos = e["data"].getSeconds();

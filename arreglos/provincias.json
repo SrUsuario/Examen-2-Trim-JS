@@ -1,35 +1,42 @@
 [
     {
+        "numero": 1,
         "nombre": "A Coruña",
         "comunidad": "galicia",
         "habitantes": 1122000
     },
     {
+        "numero": 2,
         "nombre": "Lugo",
         "comunidad": "galicia",
         "habitantes": 329000
     },
     {
+        "numero": 3,
         "nombre": "Ourense",
         "comunidad": "galicia",
         "habitantes": 307000
     },
     {
+        "numero": 4,
         "nombre": "Pontevedra",
         "comunidad": "galicia",
         "habitantes": 941000
     },
     {
+        "numero": 1,
         "nombre": "Huesca",
         "comunidad": "aragon",
         "habitantes": 219000
     },
     {
+        "numero": 2,
         "nombre": "Zaragoza",
         "comunidad": "aragon",
         "habitantes": 968000
     },
     {
+        "numero": 3,
         "nombre": "Teruel",
         "comunidad": "aragon",
         "habitantes": 133000
